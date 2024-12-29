@@ -1,5 +1,5 @@
 import ipaddress, socket, requests, json
-import Flask, request, jsonify
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -16,6 +16,7 @@ class ServerNode:
         self.bootstrap_ip = bootstrap_ip
         self.network_ips = set()
         self.joined = False
+        self.join_network()
     
     def join_network(self):
         data = {
@@ -43,6 +44,8 @@ class ServerNode:
             raise ValueError("Not joined to a network to propagate to.")
 
         for address in self.network_ips:
+            if address == self.ip:
+                continue
             url = f"http://{address}:5001/propagate"
             data = {
                 "type": "propagate",
@@ -55,11 +58,8 @@ class ServerNode:
                 
                 if response.status_code == 200:
                     print("Succeeded!")
-                    joined_ips = response.json().get("ips", [])
-                    self.network_ips.update(joined_ips)
-                    self.joined = True
                 else:
-                    print("Failed!")
+                    print("Failed! Code: {status_code}")
             except requests.exceptions.RequestException as e:
                 print("error during request: ", e)
                 
@@ -67,7 +67,7 @@ class ServerNode:
     def _write(self, file_name, data):
         """Adds/writes to a file without propagating.
             Not for external use."""
-        # open the file in append mode
+        # open the file in append mode.
         f = open(file_name, "a")
         f.write(data)
         f.close()
@@ -77,7 +77,3 @@ class ServerNode:
             For external writing."""
         self._write(file_name, data)
         self._propagate(file_name, data)
-
-
-
-new_node = ServerNode(node_id=1, bootstrap_ip=ipaddress.ip_address('127.0.0.1'))
