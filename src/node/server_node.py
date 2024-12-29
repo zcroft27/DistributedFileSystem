@@ -20,7 +20,7 @@ class ServerNode:
     
     def join_network(self):
         data = {
-            "node_id": self.node_id,
+            "node_id": str(self.node_id),
             "action": "join"
         }
         url = f"http://{self.bootstrap_ip}:5000/join"
