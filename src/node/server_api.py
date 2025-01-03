@@ -22,15 +22,14 @@ def receive_propagate():
             return jsonify({"status": "failure", "message": "Must be of type propagate"})
         
         data = request.json
-        file_name = data.get("file_name")
-        file_data = data.get("file_data")
+        log = data.get("log")
 
-        if not file_name or not file_data:
-            return jsonify({"status": "failure", "message": "Missing file name or file data"}), 400
+        if not log:
+            return jsonify({"status": "failure", "message": "Missing log"}), 400
 
-        server_node._write(file_name, file_data)
+        server_node.receive_log(log)
 
-        return jsonify({"status": "success", "message": "Network updated", "ips": list(network_ips)})
+        return jsonify({"status": "success", "message": "Log Updated"})
 
     except Exception as e:
         return jsonify({"status": "failure", "message": str(e)})
